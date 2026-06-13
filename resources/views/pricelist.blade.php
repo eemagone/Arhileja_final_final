@@ -10,50 +10,7 @@
 </head>
 <body class="font-sans antialiased bg-stone-50">
 
-    <nav class="bg-white border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-
-                <!-- Logo -->
-                <div class="flex items-center space-x-8">
-                    <a href="{{ route('pricelist') }}" class="text-lg font-bold text-stone-800 tracking-tight">
-                        Arhilejas Papēdis
-                    </a>
-                    <a href="{{ route('pricelist') }}" class="text-sm font-medium text-amber-600 transition">
-                        Cenrādis
-                    </a>
-                </div>
-
-                <!-- Right side -->
-                <div class="flex items-center gap-3">
-                    @auth
-                        <span class="text-sm text-stone-500">{{ Auth::user()->name }}</span>
-                        <a href="{{ route('dashboard') }}"
-                           class="text-sm font-medium text-stone-500 hover:text-stone-800 border border-stone-200 hover:border-stone-400 px-3 py-1.5 rounded-md transition">
-                            Panelis
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                    class="text-sm font-medium text-stone-500 hover:text-red-600 border border-stone-200 hover:border-red-300 px-3 py-1.5 rounded-md transition">
-                                Iziet
-                            </button>
-                        </form>
-                    @else
-                        <a href="{{ route('login') }}"
-                           class="text-sm font-medium text-stone-600 hover:text-stone-900 border border-stone-200 hover:border-stone-400 px-4 py-1.5 rounded-md transition">
-                            Ieiet
-                        </a>
-                        <a href="{{ route('register') }}"
-                           class="text-sm font-medium bg-amber-500 hover:bg-amber-400 text-stone-900 px-4 py-1.5 rounded-md transition">
-                            Reģistrēties
-                        </a>
-                    @endauth
-                </div>
-
-            </div>
-        </div>
-    </nav>
+    @include('layouts.navigation')
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 

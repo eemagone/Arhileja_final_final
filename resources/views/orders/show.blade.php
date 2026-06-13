@@ -8,7 +8,8 @@
             'Atcelts' => 'bg-red-100 text-red-700',
         ];
         $user = auth()->user();
-        $canManage = $user->isMaster() || $user->isAdmin();
+        $isClosed = $pasutijums->atsauksme !== null || in_array($pasutijums->Statuss, ['Atcelts']);
+        $canManage = ($user->isMaster() || $user->isAdmin()) && !$isClosed;
     @endphp
 
     <div class="flex items-center justify-between mb-6">
@@ -89,6 +90,13 @@
         @endif
     </div>
 
+    @if (($user->isMaster() || $user->isAdmin()) && $isClosed)
+        <div class="bg-stone-50 border border-stone-200 rounded-lg px-4 py-3 mb-6 text-sm text-stone-500 flex items-center gap-2">
+            <span></span>
+            <span>Pasūtījums ir slēgts! Klients ir atstājis atsauksmi. Rediģēšana nav iespējama.</span>
+        </div>
+    @endif
+
     @if ($canManage)
         {{-- Materiālu pievienošana / cenas pārrēķins --}}
         <div class="bg-white rounded-lg border border-stone-200 p-4 mb-6">
@@ -160,46 +168,60 @@
         </div>
     @endif
 
-    @if ($user->isClient())
-        {{-- Atsauksmes forma --}}
-        <div class="bg-white rounded-lg border border-stone-200 p-4">
-            <h2 class="text-sm font-semibold text-stone-600 mb-3">Atsauksme</h2>
+    {{-- Atsauksme --}}
+    <div class="bg-white rounded-lg border border-stone-200 p-4">
+        <h2 class="text-sm font-semibold text-stone-600 mb-3">Atsauksme</h2>
 
-            @if ($pasutijums->atsauksme)
-                <div class="text-sm">
-                    <p class="font-medium">Vērtējums: {{ $pasutijums->atsauksme->Vertejums }} / 5</p>
-                    @if ($pasutijums->atsauksme->Komentars)
-                        <p class="text-stone-600 mt-1">{{ $pasutijums->atsauksme->Komentars }}</p>
-                    @endif
+        @if ($pasutijums->atsauksme)
+            {{-- Show review to everyone --}}
+            <div class="text-sm space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="font-medium">Vērtējums:</span>
+                    <span class="font-semibold text-amber-600">{{ $pasutijums->atsauksme->Vertejums }} / 5</span>
+                    <span class="text-stone-400">
+                        @for ($i = 1; $i <= 5; $i++)
+                            {{ $i <= $pasutijums->atsauksme->Vertejums ? '★' : '☆' }}
+                        @endfor
+                    </span>
                 </div>
-            @elseif ($pasutijums->Statuss === 'Gatavs')
-                <form method="POST" action="{{ route('reviews.store', $pasutijums->Pasutijumi_ID) }}" class="space-y-3">
-                    @csrf
+                @if ($pasutijums->atsauksme->Komentars)
+                    <p class="text-stone-600 mt-1">{{ $pasutijums->atsauksme->Komentars }}</p>
+                @endif
+            </div>
+        @elseif ($user->isClient() && $pasutijums->Statuss === 'Gatavs')
+            {{-- Review form only for the client --}}
+            <form method="POST" action="{{ route('reviews.store', $pasutijums->Pasutijumi_ID) }}" class="space-y-3">
+                @csrf
 
-                    <div>
-                        <label class="block text-sm font-medium mb-1" for="vertejums">Vērtējums (1-5)</label>
-                        <select name="vertejums" id="vertejums" class="rounded-md border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-                            @for ($i = 5; $i >= 1; $i--)
-                                <option value="{{ $i }}">{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1" for="vertejums">Vērtējums (1–5)</label>
+                    <select name="vertejums" id="vertejums" class="rounded-md border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        @for ($i = 5; $i >= 1; $i--)
+                            <option value="{{ $i }}">{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
 
-                    <div>
-                        <label class="block text-sm font-medium mb-1" for="komentars">Komentārs</label>
-                        <textarea name="komentars" id="komentars" rows="3"
-                            class="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1" for="komentars">Komentārs</label>
+                    <textarea name="komentars" id="komentars" rows="3"
+                        class="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                </div>
 
-                    <button type="submit"
-                        class="bg-amber-500 text-stone-900 px-4 py-2 rounded-md text-sm font-medium hover:bg-amber-400 transition">
-                        Iesniegt atsauksmi
-                    </button>
-                </form>
-            @else
-                <p class="text-sm text-stone-500">Atsauksmi varēsi sniegt, kad pasūtījums būs pabeigts.</p>
-            @endif
-        </div>
-    @endif
+                <button type="submit"
+                    class="bg-amber-500 text-stone-900 px-4 py-2 rounded-md text-sm font-medium hover:bg-amber-400 transition">
+                    Iesniegt atsauksmi
+                </button>
+            </form>
+        @else
+            <p class="text-sm text-stone-500">
+                @if($user->isClient())
+                    Atsauksmi varēsi sniegt, kad pasūtījums būs pabeigts.
+                @else
+                    Klients vēl nav atstājis atsauksmi.
+                @endif
+            </p>
+        @endif
+    </div>
 
 </x-layouts.app>

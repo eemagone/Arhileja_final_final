@@ -104,8 +104,8 @@
                     <tbody class="divide-y divide-stone-100">
                         @foreach ($krajumi as $k)
                             <tr>
-                                <td class="px-4 py-2">{{ $k->materials->Nosaukums ?? '—' }}</td>
-                                <td class="px-4 py-2 text-stone-500">{{ $k->materials->Mervieniba ?? '—' }}</td>
+                                <td class="px-4 py-2">{{ $k->materiali->Nosaukums ?? '—' }}</td>
+                                <td class="px-4 py-2 text-stone-500">{{ $k->materiali->Mervieniba ?? '—' }}</td>
                                 <td class="px-4 py-2 text-right {{ $k->Apjoms < 10 ? 'text-red-600 font-semibold' : '' }}">
                                     {{ $k->Apjoms }}
                                 </td>

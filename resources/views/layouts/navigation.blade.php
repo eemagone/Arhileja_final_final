@@ -1,42 +1,67 @@
-<nav class="bg-white border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
+<nav class="bg-white border-b border-stone-200">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex justify-between items-center h-14">
 
-            <!-- Logo -->
-            <div class="flex items-center space-x-8">
-                <a href="{{ route('dashboard') }}" class="text-lg font-bold text-stone-800 tracking-tight">
-                    Arhilejas Papēdis
-                </a>
+            {{-- LEFT: Logo --}}
+            <a href="{{ auth()->check() ? route('dashboard') : route('pricelist') }}" class="shrink-0 flex items-center gap-2">
+                <img src="/logo.png" alt="Arhilejas Papēdis" class="h-8 w-auto">
+                <span class="text-base font-bold text-stone-900 tracking-tight">Arhilejas Papēdis</span>
+            </a>
 
-                <a href="{{ route('dashboard') }}"
-                   class="text-sm font-medium {{ request()->routeIs('dashboard') ? 'text-amber-600' : 'text-stone-500 hover:text-stone-800' }} transition">
-                    Panelis
-                </a>
-
-                @if(Auth::user()->isClient())
-                    <a href="{{ route('orders.create') }}"
-                       class="text-sm font-medium {{ request()->routeIs('orders.create') ? 'text-amber-600' : 'text-stone-500 hover:text-stone-800' }} transition">
-                        Jauns pasūtījums
+            {{-- CENTRE: Nav links --}}
+            <div class="flex items-center gap-1">
+                @auth
+                    <a href="{{ route('dashboard') }}"
+                       class="px-3 py-1.5 rounded-md text-sm font-medium transition
+                              {{ request()->routeIs('dashboard') ? 'bg-amber-50 text-amber-700' : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800' }}">
+                        Panelis
                     </a>
-                @endif
+
+                    @if(Auth::user()->isClient())
+                        <a href="{{ route('orders.create') }}"
+                           class="px-3 py-1.5 rounded-md text-sm font-medium transition
+                                  {{ request()->routeIs('orders.create') ? 'bg-amber-50 text-amber-700' : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800' }}">
+                            Jauns pasūtījums
+                        </a>
+                    @endif
+
+                    @if(Auth::user()->isAdmin())
+                        <a href="{{ route('admin.users') }}"
+                           class="px-3 py-1.5 rounded-md text-sm font-medium transition
+                                  {{ request()->routeIs('admin.users*') ? 'bg-amber-50 text-amber-700' : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800' }}">
+                            Lietotāji
+                        </a>
+                    @endif
+                @endauth
 
                 <a href="{{ route('pricelist') }}"
-                   class="text-sm font-medium {{ request()->routeIs('pricelist') ? 'text-amber-600' : 'text-stone-500 hover:text-stone-800' }} transition">
+                   class="px-3 py-1.5 rounded-md text-sm font-medium transition
+                          {{ request()->routeIs('pricelist') ? 'bg-amber-50 text-amber-700' : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800' }}">
                     Cenrādis
                 </a>
             </div>
 
-            <!-- Right side: user name + logout -->
-            <div class="flex items-center gap-4">
-                <span class="text-sm text-stone-500">{{ Auth::user()->name }}</span>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                            class="text-sm font-medium text-stone-500 hover:text-red-600 border border-stone-200 hover:border-red-300 px-3 py-1.5 rounded-md transition">
-                        Iziet
-                    </button>
-                </form>
+            {{-- RIGHT: logged in = user + iziet, guest = ieiet + reģistrēties --}}
+            <div class="flex items-center gap-3 shrink-0">
+                @auth
+                    <span class="text-sm text-stone-400">{{ Auth::user()->name }}</span>
+                    <div class="w-px h-4 bg-stone-200"></div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="text-sm font-medium text-stone-500 hover:text-red-600 transition">
+                            Iziet
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}"
+                       class="text-sm font-medium text-stone-600 hover:text-stone-900 transition">
+                        Ieiet
+                    </a>
+                    <a href="{{ route('register') }}"
+                       class="text-sm font-medium bg-amber-500 hover:bg-amber-400 text-stone-900 px-4 py-1.5 rounded-md transition">
+                        Reģistrēties
+                    </a>
+                @endauth
             </div>
 
         </div>

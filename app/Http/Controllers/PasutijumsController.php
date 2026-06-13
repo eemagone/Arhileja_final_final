@@ -168,6 +168,10 @@ class PasutijumsController extends Controller
             abort(403, 'Tikai meistars var pievienot materiālus pasūtījumam.');
         }
 
+        if ($pasutijums->atsauksme) {
+            abort(403, 'Pasūtījums ir slēgts — klients ir atstājis atsauksmi.');
+        }
+
         $validated = $request->validate([
             'materiali' => 'required|array|min:1',
             'materiali.*.materiali_id' => 'required|exists:Materiali,Materiali_ID',
@@ -179,8 +183,8 @@ class PasutijumsController extends Controller
         $filialesId = $meistars?->filiale?->Filiales_ID;
 
         DB::transaction(function () use ($validated, $pasutijums, $filialesId) {
-            $materialuSumma = 0;
 
+            // 1. Pievieno/atjaunina jaunos materiālus un noraksta no krājumiem
             foreach ($validated['materiali'] as $item) {
                 $materials = Materiali::findOrFail($item['materiali_id']);
                 $daudzums = (int) $item['daudzums'];
@@ -198,15 +202,28 @@ class PasutijumsController extends Controller
                     $krajums->decrement('Apjoms', $daudzums);
                 }
 
-                // Pievieno/atjaunina pasūtījuma materiālu sarakstu
-                $pasutijums->materiali()->syncWithoutDetaching([
-                    $materials->Materiali_ID => ['Daudzums' => $daudzums],
-                ]);
-
-                $materialuSumma += $materials->Cena * $daudzums;
+                // Ja šis materiāls jau ir pasūtījumā — pieskaita klāt daudzumu
+                $existing = $pasutijums->materiali()->wherePivot('Materiali_ID', $materials->Materiali_ID)->first();
+                if ($existing) {
+                    $pasutijums->materiali()->updateExistingPivot(
+                        $materials->Materiali_ID,
+                        ['Daudzums' => $existing->pivot->Daudzums + $daudzums]
+                    );
+                } else {
+                    $pasutijums->materiali()->attach($materials->Materiali_ID, ['Daudzums' => $daudzums]);
+                }
             }
 
-            $darbaCena = $validated['darba_cena'] ?? 0;
+            // 2. Pārrēķina cenu no VISIEM pasūtījuma materiāliem (arī iepriekšējiem)
+            $pasutijums->load('materiali');
+            $materialuSumma = $pasutijums->materiali->sum(function ($m) {
+                return $m->Cena * $m->pivot->Daudzums;
+            });
+
+            // 3. Darba cena — ņem no formas ja norādīta, citādi saglabā iepriekšējo
+            $darbaCena = isset($validated['darba_cena']) && $validated['darba_cena'] !== null
+                ? (float) $validated['darba_cena']
+                : 0;
 
             $pasutijums->update([
                 'Cena' => $materialuSumma + $darbaCena,
@@ -226,6 +243,10 @@ class PasutijumsController extends Controller
 
         if (!$user->isMaster() && !$user->isAdmin()) {
             abort(403, 'Tikai meistars var mainīt pasūtījuma statusu.');
+        }
+
+        if ($pasutijums->atsauksme) {
+            abort(403, 'Pasūtījums ir slēgts — klients ir atstājis atsauksmi.');
         }
 
         $validated = $request->validate([

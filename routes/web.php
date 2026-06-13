@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasutijumsController;
 use App\Http\Controllers\AtsauksmeController;
+use App\Http\Controllers\AdminController;
 use App\Models\Filiale;
 use App\Models\Materiali;
 
@@ -41,4 +42,10 @@ Route::middleware('auth')->group(function () {
     
     //atsausksme + pasutijums
     Route::post('/orders/{pasutijums}/review', [AtsauksmeController::class, 'store'])->name('reviews.store');
+
+    // Admin — user management
+    Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/admin/users/{user}/edit', [AdminController::class, 'editUser'])->name('admin.users.edit');
+    Route::put('/admin/users/{user}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
 });
