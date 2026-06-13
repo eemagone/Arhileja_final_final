@@ -14,7 +14,9 @@ class Materiali extends Model
  
     public function pasutijumi()
     {
-        return $this->belongsToMany(Pasutijums::class, 'PasutijumaMateriali', 'Materiali_ID', 'Pasutijumi_ID')->withPivot('Daudzums');
+        // Pivot table column is Pasutijuma_ID (not Pasutijumi_ID)
+        return $this->belongsToMany(Pasutijums::class, 'PasutijumaMateriali', 'Materiali_ID', 'Pasutijuma_ID')
+                    ->withPivot('Daudzums');
     }
  
     public function krajumi()

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
  
 class Apavi extends Model
 {
-    protected $table = 'apavi';
+    protected $table = 'Apavi';
     protected $primaryKey = 'Apavi_ID';
     public $timestamps = false;
  
@@ -22,4 +22,3 @@ class Apavi extends Model
         return $this->hasMany(Pasutijums::class, 'Apavu_ID', 'Apavi_ID');
     }
 }
- 

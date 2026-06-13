@@ -17,8 +17,8 @@ class Filiale extends Model
         return $this->hasMany(Meistars::class, 'Filiales_ID', 'Filiales_ID');
     }
 
-    public function pasutijumi()
+    public function krajumi()
     {
-        return $this->hasMany(Pasutijums::class, 'Filiales_ID', 'Filiales_ID');
+        return $this->hasMany(FilialuKrajumi::class, 'Filiales_ID', 'Filiales_ID');
     }
 }
